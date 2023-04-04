@@ -9,133 +9,99 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Q1Top15 {
 
-	static Logger logger = LoggerFactory.getLogger(Q1Top15.class);
-	private Map<String, Map<String, Object>> racerDataMap = new HashMap<>();
+	String dataFormat = "yyyy-MM-dd_HH:mm:ss.SSS";
 
-	// constructor
-	public Q1Top15(String abbreviationsFile, String startTimeFile, String endTimeFile) throws IOException {
-		parseLogs(abbreviationsFile, startTimeFile, endTimeFile);
+	// method for parse file 'abbreviations'
+	public List<Racer> parseAbbreviations(String abbreviationsFile) {
+
+		List<Racer> racers = new ArrayList<>();
+
+		try (BufferedReader abbreviationsReader = new BufferedReader(new FileReader(abbreviationsFile))) {
+			abbreviationsReader.lines().forEach(line -> {
+				String[] parts = line.split("_");
+				String abbreviation = parts[0];
+				String name = parts[1];
+				String team = parts[2];
+				Racer racer = new Racer(abbreviation, name, team);
+				racers.add(racer);
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return racers;
 	}
 
-	// method for parse files, and store data 'fullName', 'team' and
-	// 'durationInMillis' in 'racerDataMap'
-	public Map<String, Map<String, Object>> parseLogs(String abbreviationsFile, String startTimeFile,
-			String endTimeFile) throws IOException {
+	// method for parse file 'start'
+	public List<Racer> parseStart(String startTimeFile, List<Racer> racers) throws IOException {
 
-		Map<String, String[]> abbreviations = new HashMap<>();
-		BufferedReader abbreviationsReader = new BufferedReader(new FileReader(abbreviationsFile));
-		String line;
-		while ((line = abbreviationsReader.readLine()) != null) {
-			String[] parts = line.split("_");
-			String abbreviation = parts[0];
-			String[] racer = new String[] { parts[1], parts[2] };
-			abbreviations.put(abbreviation, racer);
+		try (BufferedReader startReader = new BufferedReader(new FileReader(startTimeFile))) {
+			startReader.lines().forEach(line -> {
+				String abbreviation = line.substring(0, 3);
+				String startTime = line.substring(3);
+				racers.stream().filter(racer -> racer.abbreviation.equals(abbreviation)).findFirst()
+						.ifPresent(racer -> racer.startTime = startTime);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		abbreviationsReader.close();
+		return racers;
+	}
 
-		Map<String, String> startTimes = new HashMap<>();
-		BufferedReader startReader = new BufferedReader(new FileReader(startTimeFile));
-		while ((line = startReader.readLine()) != null) {
-			String abbreviation = line.substring(0, 3);
-			String startTime = line.substring(3);
-			startTimes.put(abbreviation, startTime);
+	// method for parse file 'start'
+	public List<Racer> parseEnd(String endTimeFile, List<Racer> racers) {
+
+		try (BufferedReader endReader = new BufferedReader(new FileReader(endTimeFile))) {
+			endReader.lines().forEach(line -> {
+				String abbreviation = line.substring(0, 3);
+				String endTime = line.substring(3);
+				racers.stream().filter(racer -> racer.abbreviation.equals(abbreviation)).findFirst()
+						.ifPresent(racer -> racer.endTime = endTime);
+			});
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		startReader.close();
+		return racers;
+	}
 
-		Map<String, String> endTimes = new HashMap<>();
-		BufferedReader endReader = new BufferedReader(new FileReader(endTimeFile));
-		while ((line = endReader.readLine()) != null) {
-			String abbreviation = line.substring(0, 3);
-			String endTime = line.substring(3);
-			endTimes.put(abbreviation, endTime);
-		}
-		endReader.close();
+	// method for add duration lap
+	public List<Racer> addDurationLap(List<Racer> racers) {
 
-		abbreviations.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-			String abbreviation = entry.getKey();
-			String[] racer = entry.getValue();
-			String fullName = racer[0];
-			String team = racer[1];
-			String startTime = startTimes.getOrDefault(abbreviation, "");
-			String endTime = endTimes.getOrDefault(abbreviation, "");
-			if (!startTime.isEmpty() && !endTime.isEmpty()) {
-				long durationInMillis = Duration
-						.between(LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss.SSS")),
-								LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss.SSS")))
-						.toMillis();
-
-				Map<String, Object> racerData = new HashMap<>();
-				racerData.put("team", team);
-				racerData.put("duration", durationInMillis);
-				racerDataMap.put(fullName, racerData);
-			}
+		racers.stream().forEach(racer -> {
+			long duration = Duration
+					.between(LocalDateTime.parse(racer.startTime, DateTimeFormatter.ofPattern(dataFormat)),
+							LocalDateTime.parse(racer.endTime, DateTimeFormatter.ofPattern(dataFormat)))
+					.toMillis();
+			racer.duration = duration;
 		});
-		return racerDataMap;
+		return racers;
+
 	}
 
-	// method for sort 'racerDataMap' by duration of lap from less to greater
-	public Map<String, Map<String, Object>> sortByDurationLap() {
-		racerDataMap = racerDataMap.entrySet().stream()
-				.sorted(Comparator.comparingLong(entry -> (Long) entry.getValue().get("duration")))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue,
-						LinkedHashMap::new));
-		return racerDataMap;
+	// method for sort 'Racer' List by duration of lap from less to greater
+	public List<Racer> sortByDurationLap(List<Racer> racers) {
+		Comparator<Racer> byDuration = Comparator.comparingLong(racer -> racer.duration);
+		return racers.stream().sorted(byDuration).collect(Collectors.toList());
 	}
 
-	public static void main(String[] args) throws IOException {
-
-		Q1Top15 racerData = new Q1Top15("src/main/resources/abbreviations.txt", "src/main/resources/start.log",
-				"src/main/resources/end.log");
-		racerData.sortByDurationLap();
-
-		// Find the widest values for each column
-		int maxFullNameWidth = racerData.racerDataMap.keySet().stream().mapToInt(String::length).max().orElse(0);
-		int maxTeamWidth = racerData.racerDataMap.values().stream()
-				.mapToInt(racerData1 -> ((String) racerData1.get("team")).length()).max().orElse(0);
-		int maxDurationWidth = racerData.racerDataMap.values().stream().mapToInt(racerData1 -> {
-			Long duration = (Long) racerData1.get("duration");
-			return String.format("%02d:%06.3f", TimeUnit.MILLISECONDS.toMinutes(duration),
-					TimeUnit.MILLISECONDS.toSeconds(duration) % 60
-							+ TimeUnit.MILLISECONDS.toMillis(duration) % 1000 / 1000.0)
-					.length();
-		}).max().orElse(0);
-
-		// Print the separator after the 15th line
-		int lineCount = 1;
-		for (Map.Entry<String, Map<String, Object>> entry : racerData.racerDataMap.entrySet()) {
-			if (lineCount == 16) {
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < maxFullNameWidth + maxTeamWidth + maxDurationWidth + 12; i++) {
-					sb.append("-");
-				}
-				logger.info(sb.toString());
-			}
-
-			String fullName = entry.getKey();
-			Map<String, Object> racerData1 = entry.getValue();
-			String team = (String) racerData1.get("team");
-			Long duration = (Long) racerData1.get("duration");
-			String formattedDuration = String.format("%02d:%06.3f", TimeUnit.MILLISECONDS.toMinutes(duration),
-					TimeUnit.MILLISECONDS.toSeconds(duration) % 60
-							+ TimeUnit.MILLISECONDS.toMillis(duration) % 1000 / 1000.0);
-
-			logger.info(String.format(
-					"%3d | %-" + maxFullNameWidth + "s | %-" + maxTeamWidth + "s | %-" + maxDurationWidth + "s",
-					lineCount, fullName, team, formattedDuration));
-			lineCount++;
-		}
+	// method for format duration lap in string
+	public List<Racer> formatDurationLap(List<Racer> racers) {
+		return racers.stream().map(racer -> {
+			String durationFormatted = String.format("%02d:%06.3f", TimeUnit.MILLISECONDS.toMinutes(racer.duration),
+					TimeUnit.MILLISECONDS.toSeconds(racer.duration) % 60
+							+ TimeUnit.MILLISECONDS.toMillis(racer.duration) % 1000 / 1000.0);
+			racer.durationFormatted = durationFormatted;
+			return racer;
+		}).collect(Collectors.toList());
 	}
 
 }
