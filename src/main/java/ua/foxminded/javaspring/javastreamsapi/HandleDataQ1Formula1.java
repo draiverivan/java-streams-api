@@ -15,9 +15,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class Q1Top15 {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	String dataFormat = "yyyy-MM-dd_HH:mm:ss.SSS";
+public class HandleDataQ1Formula1 {
+
+	private Logger logger = LoggerFactory.getLogger(HandleDataQ1Formula1.class.getName());
+	private static final String DATAFORMAT = "yyyy-MM-dd_HH:mm:ss.SSS";
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATAFORMAT);
 
 	// method for parse file 'abbreviations'
 	public List<Racer> parseAbbreviations(String abbreviationsFile) {
@@ -34,7 +39,7 @@ public class Q1Top15 {
 				racers.add(racer);
 			});
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("An error occurred while parsing the abbreviations file: {}", e.getMessage());
 		}
 		return racers;
 	}
@@ -46,12 +51,12 @@ public class Q1Top15 {
 			startReader.lines().forEach(line -> {
 				String abbreviation = line.substring(0, 3);
 				String startTime = line.substring(3);
-				racers.stream().filter(racer -> racer.abbreviation.equals(abbreviation)).findFirst()
-						.ifPresent(racer -> racer.startTime = startTime);
+				racers.stream().filter(racer -> racer.getAbbreviation().equals(abbreviation)).findFirst()
+						.ifPresent(racer -> racer.setStartTime(startTime));
 			});
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("An error occurred while parsing the start time file: {}", e.getMessage());
 		}
 		return racers;
 	}
@@ -63,12 +68,12 @@ public class Q1Top15 {
 			endReader.lines().forEach(line -> {
 				String abbreviation = line.substring(0, 3);
 				String endTime = line.substring(3);
-				racers.stream().filter(racer -> racer.abbreviation.equals(abbreviation)).findFirst()
-						.ifPresent(racer -> racer.endTime = endTime);
+				racers.stream().filter(racer -> racer.getAbbreviation().equals(abbreviation)).findFirst()
+						.ifPresent(racer -> racer.setEndTime(endTime));
 			});
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("An error occurred while parsing the end time file: {}", e.getMessage());
 		}
 		return racers;
 	}
@@ -76,30 +81,29 @@ public class Q1Top15 {
 	// method for add duration lap
 	public List<Racer> addDurationLap(List<Racer> racers) {
 
-		racers.stream().forEach(racer -> {
-			long duration = Duration
-					.between(LocalDateTime.parse(racer.startTime, DateTimeFormatter.ofPattern(dataFormat)),
-							LocalDateTime.parse(racer.endTime, DateTimeFormatter.ofPattern(dataFormat)))
-					.toMillis();
-			racer.duration = duration;
-		});
-		return racers;
-
+		return racers.stream().map(racer -> {
+			LocalDateTime start = LocalDateTime.parse(racer.getStartTime(), FORMATTER);
+			LocalDateTime end = LocalDateTime.parse(racer.getEndTime(), FORMATTER);
+			long duration = Duration.between(start, end).toMillis();
+			racer.setDuration(duration);
+			return racer;
+		}).collect(Collectors.toList());
 	}
 
 	// method for sort 'Racer' List by duration of lap from less to greater
 	public List<Racer> sortByDurationLap(List<Racer> racers) {
-		Comparator<Racer> byDuration = Comparator.comparingLong(racer -> racer.duration);
+		Comparator<Racer> byDuration = Comparator.comparingLong(Racer::getDuration);
 		return racers.stream().sorted(byDuration).collect(Collectors.toList());
 	}
 
 	// method for format duration lap in string
 	public List<Racer> formatDurationLap(List<Racer> racers) {
 		return racers.stream().map(racer -> {
-			String durationFormatted = String.format("%02d:%06.3f", TimeUnit.MILLISECONDS.toMinutes(racer.duration),
-					TimeUnit.MILLISECONDS.toSeconds(racer.duration) % 60
-							+ TimeUnit.MILLISECONDS.toMillis(racer.duration) % 1000 / 1000.0);
-			racer.durationFormatted = durationFormatted;
+			String durationFormatted = String.format("%02d:%06.3f",
+					TimeUnit.MILLISECONDS.toMinutes(racer.getDuration()),
+					TimeUnit.MILLISECONDS.toSeconds(racer.getDuration()) % 60
+							+ TimeUnit.MILLISECONDS.toMillis(racer.getDuration()) % 1000 / 1000.0);
+			racer.setDurationFormatted(durationFormatted);
 			return racer;
 		}).collect(Collectors.toList());
 	}

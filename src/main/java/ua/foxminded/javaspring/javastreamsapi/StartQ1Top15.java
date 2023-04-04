@@ -12,25 +12,25 @@ public class StartQ1Top15 {
 
 	public static void main(String[] args) throws IOException {
 
-		Q1Top15 q1Top15 = new Q1Top15();
-		List<Racer> racers = q1Top15.parseAbbreviations("src/main/resources/abbreviations.txt");
-		racers = q1Top15.parseStart("src/main/resources/start.log", racers);
-		racers = q1Top15.parseEnd("src/main/resources/end.log", racers);
-		racers = q1Top15.addDurationLap(racers);
-		racers = q1Top15.sortByDurationLap(racers);
-		racers = q1Top15.formatDurationLap(racers);
+		HandleDataQ1Formula1 handleDataQ1Formula1 = new HandleDataQ1Formula1();
+		List<Racer> racers = handleDataQ1Formula1.parseAbbreviations("src/main/resources/abbreviations.txt");
+		racers = handleDataQ1Formula1.parseStart("src/main/resources/start.log", racers);
+		racers = handleDataQ1Formula1.parseEnd("src/main/resources/end.log", racers);
+		racers = handleDataQ1Formula1.addDurationLap(racers);
+		racers = handleDataQ1Formula1.sortByDurationLap(racers);
+		racers = handleDataQ1Formula1.formatDurationLap(racers);
 
 		// Get maximum width for each column
-		int maxNameWidth = racers.stream().mapToInt(racer -> racer.name.length()).max().orElse(0);
-		int maxTeamWidth = racers.stream().mapToInt(racer -> racer.team.length()).max().orElse(0);
-		int maxDurationWidth = racers.stream().mapToInt(racer -> racer.durationFormatted.length()).max().orElse(0);
+		int maxNameWidth = racers.stream().mapToInt(racer -> racer.getName().length()).max().orElse(0);
+		int maxTeamWidth = racers.stream().mapToInt(racer -> racer.getTeam().length()).max().orElse(0);
+		int maxDurationWidth = racers.stream().mapToInt(racer -> racer.getDurationFormatted().length()).max().orElse(0);
 
 		// Print racers
 		for (int i = 0; i < 15; i++) {
 			Racer racer = racers.get(i);
 			logger.info(String.format(
 					"%-2s | %-" + maxNameWidth + "s | %-" + maxTeamWidth + "s | %-" + maxDurationWidth + "s", (i + 1),
-					racer.name, racer.team, racer.durationFormatted));
+					racer.getName(), racer.getTeam(), racer.getDurationFormatted()));
 		}
 
 		// Print underline
@@ -45,7 +45,7 @@ public class StartQ1Top15 {
 			Racer racer = racers.get(i);
 			logger.info(String.format(
 					"%-2s | %-" + maxNameWidth + "s | %-" + maxTeamWidth + "s | %-" + maxDurationWidth + "s", (i + 1),
-					racer.name, racer.team, racer.durationFormatted));
+					racer.getName(), racer.getTeam(), racer.getDurationFormatted()));
 		}
 	}
 }
