@@ -13,18 +13,18 @@ public class Racer {
 	public Racer(String abbreviation, String name, String team, String startTime, String endTime, long duration) {
 
 		this.abbreviation = abbreviation;
-		this.setName(name);
-		this.setTeam(team);
+		this.name = name;
+		this.team = team;
 		this.startTime = startTime;
-		this.setEndTime(endTime);
-		this.setDuration(duration);
+		this.endTime = endTime;
+		this.duration = duration;
 	}
 
 	public Racer(String abbreviation, String name, String team) {
 
 		this.abbreviation = abbreviation;
-		this.setName(name);
-		this.setTeam(team);
+		this.name = name;
+		this.team = team;
 	}
 
 	public String getAbbreviation() {
@@ -43,9 +43,8 @@ public class Racer {
 		return endTime;
 	}
 
-	public String setEndTime(String endTime) {
+	public void setEndTime(String endTime) {
 		this.endTime = endTime;
-		return endTime;
 	}
 
 	public long getDuration() {
@@ -79,6 +78,5 @@ public class Racer {
 	public void setTeam(String team) {
 		this.team = team;
 	}
-	
 
 }

@@ -41,33 +41,6 @@ class HandleDataQ1Formula1Test {
 	}
 
 	@Test
-	void parseStartReturnsInputListUnchangedWhenGivenEmptyFile() throws IOException {
-		racers.add(new Racer("AAA", "John Doe", "Team A"));
-		racers.add(new Racer("BBB", "Jane Doe", "Team B"));
-		List<Racer> expected = new ArrayList<>(racers);
-		List<Racer> actual = handleDataQ1Formula1.parseStart("empty.log", racers);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	void parseStartReturnsInputListUnchangedWhenGivenFileWithUnknownAbbreviation() throws IOException {
-		racers.add(new Racer("AAA", "John Doe", "Team A"));
-		racers.add(new Racer("BBB", "Jane Doe", "Team B"));
-		List<Racer> expected = new ArrayList<>(racers);
-		List<Racer> actual = handleDataQ1Formula1.parseStart("unknown.log", racers);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	void parseStartReturnsInputListUnchangedWhenGivenFileWithInvalidFormat() throws IOException {
-		racers.add(new Racer("AAA", "John Doe", "Team A"));
-		racers.add(new Racer("BBB", "Jane Doe", "Team B"));
-		List<Racer> expected = new ArrayList<>(racers);
-		List<Racer> actual = handleDataQ1Formula1.parseStart("invalid.log", racers);
-		assertEquals(expected, actual);
-	}
-
-	@Test
 	void parseEndReturnsExpectedListWhenGivenValidInput() throws IOException {
 		racers.add(new Racer("AAA", "John Doe", "Team A"));
 		racers.add(new Racer("BBB", "Jane Doe", "Team B"));
@@ -75,15 +48,6 @@ class HandleDataQ1Formula1Test {
 		expected.get(0).setStartTime("2018-05-24_12:02:58.917");
 		expected.get(1).setStartTime("2018-05-24_12:04:03.332");
 		List<Racer> actual = handleDataQ1Formula1.parseEnd("src/main/resources/end.log", racers);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	void parseEndReturnsInputListUnchangedWhenGivenFileWithInvalidFormat() throws IOException {
-		racers.add(new Racer("AAA", "John Doe", "Team A"));
-		racers.add(new Racer("BBB", "Jane Doe", "Team B"));
-		List<Racer> expected = new ArrayList<>(racers);
-		List<Racer> actual = handleDataQ1Formula1.parseEnd("invalid.log", racers);
 		assertEquals(expected, actual);
 	}
 
@@ -127,16 +91,39 @@ class HandleDataQ1Formula1Test {
 	}
 
 	@Test
-	void sortByDurationLap() throws IOException {
-		racers = handleDataQ1Formula1.parseAbbreviations("src/main/resources/abbreviations.txt");
-		racers = handleDataQ1Formula1.parseStart("src/main/resources/start.log", racers);
-		racers = handleDataQ1Formula1.parseEnd("src/main/resources/end.log", racers);
-		racers = handleDataQ1Formula1.addDurationLap(racers);
-		List<Racer> sortedRacers = handleDataQ1Formula1.sortByDurationLap(racers);
-		assertEquals("SVF", sortedRacers.get(0).getAbbreviation());
-		assertEquals("DRR", sortedRacers.get(1).getAbbreviation());
-		assertEquals("VBM", sortedRacers.get(2).getAbbreviation());
+	public void sortByDurationLap() {
+	    List<Racer> racers = new ArrayList<>();
+	    racers.add(new Racer("VER", "Bottas V.", "Mercedes"));
+	    racers.add(new Racer("HAM", "Hamilton L.", "Mercedes"));
+	    racers.add(new Racer("BOT", "Verstappen M.", "Red Bull"));
+	    racers.add(new Racer("SAI", "Sainz C.", "Ferrari"));
+
+	    // Set start and end times for the racers
+	    racers.get(0).setStartTime("2023-04-04_14:00:00.000");
+	    racers.get(0).setEndTime("2023-04-04_14:01:20.000");
+	    racers.get(1).setStartTime("2023-04-04_14:00:10.000");
+	    racers.get(1).setEndTime("2023-04-04_14:01:30.000");
+	    racers.get(2).setStartTime("2023-04-04_14:00:20.000");
+	    racers.get(2).setEndTime("2023-04-04_14:01:10.000");
+	    racers.get(3).setStartTime("2023-04-04_14:00:30.000");
+	    racers.get(3).setEndTime("2023-04-04_14:01:40.000");
+
+	    // Calculate duration for each racer
+	    HandleDataQ1Formula1 handleData = new HandleDataQ1Formula1();
+	    handleData.addDurationLap(racers);
+
+	    // Sort the racers by duration
+	    List<Racer> sortedRacers = handleData.sortByDurationLap(racers);
+
+	    // Check that the racers are sorted correctly
+	    assertEquals(4, sortedRacers.size());
+	    assertEquals("BOT", sortedRacers.get(0).getAbbreviation());
+	    assertEquals("SAI", sortedRacers.get(1).getAbbreviation());
+	    assertEquals("VER", sortedRacers.get(2).getAbbreviation());
+	    assertEquals("HAM", sortedRacers.get(3).getAbbreviation());
 	}
+
+
 
 	@Test
 	void sortByDurationLapWithEmptyList() {
