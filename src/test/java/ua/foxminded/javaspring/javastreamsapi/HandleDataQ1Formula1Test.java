@@ -22,6 +22,24 @@ class HandleDataQ1Formula1Test {
 		handleDataQ1Formula1 = new HandleDataQ1Formula1();
 		racers = new ArrayList<>();
 	}
+	
+	@Test
+	void parseStart_shouldThrowStringIndexOutOfBoundsException_whenLineDoesNotContainEnoughFields() {
+	    String startTimeFile = "src/main/resources/start_time_with_missing_fields.txt";
+	    String abbreviationsFile = "src/main/resources/abbreviations.txt";
+	    assertThrows(StringIndexOutOfBoundsException.class, () -> {
+	        handleDataQ1Formula1.parseStart(startTimeFile, handleDataQ1Formula1.parseAbbreviations(abbreviationsFile));
+	    });
+	}
+	
+	@Test
+	void parseEnd_shouldThrowStringIndexOutOfBoundsException_whenLineDoesNotContainEnoughFields() {
+	    String endTimeFile = "src/main/resources/end_time_with_missing_fields.txt";
+	    String abbreviationsFile = "src/main/resources/abbreviations.txt";
+	    assertThrows(StringIndexOutOfBoundsException.class, () -> {
+	        handleDataQ1Formula1.parseEnd(endTimeFile, handleDataQ1Formula1.parseAbbreviations(abbreviationsFile));
+	    });
+	}
 
 	@Test
 	void parseAbbreviationsIOException() {
