@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory;
 
 public class HandleDataQ1Formula1 {
 
-	private Logger logger = LoggerFactory.getLogger(HandleDataQ1Formula1.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(HandleDataQ1Formula1.class.getName());
 	private static final String DATAFORMAT = "yyyy-MM-dd_HH:mm:ss.SSS";
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATAFORMAT);
 
 	// method for parse file 'abbreviations'
-	public List<Racer> parseAbbreviations(String abbreviationsFile) {
+	public List<Racer> parseAbbreviations(String abbreviationsFile) throws IOException {
 
 		List<Racer> racers = new ArrayList<>();
 
@@ -39,42 +39,44 @@ public class HandleDataQ1Formula1 {
 				racers.add(racer);
 			});
 		} catch (IOException e) {
-			logger.error("An error occurred while parsing the abbreviations file: {}", e.getStackTrace());
+			logger.error("An error occurred while parsing the abbreviations file: {}", e.getMessage(), e);
+			throw e;
 		}
 		return racers;
 	}
-	
-	//method for parse files
-	private List<Racer> parseFile(String file, List<Racer> racers, int index1, int index2) throws IOException {
-	    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-	        reader.lines().forEach(line -> {
-	            String abbreviation = line.substring(0, index1);
-	            String time = line.substring(index1);
-	            racers.stream().filter(racer -> racer.getAbbreviation().equals(abbreviation)).findFirst()
-	                    .ifPresent(racer -> {
-	                        if (index2 == 3) {
-	                            racer.setStartTime(time);
-	                        } else if (index2 == 6) {
-	                            racer.setEndTime(time);
-	                        }
-	                    });
-	        });
-	    } catch (IOException e) {
-	        logger.error("An error occurred while parsing the file {}: {}", file, e.getStackTrace());
-	        throw e;
-	    }
-	    return racers;
-	}
 
+	// method for parse files
+	private List<Racer> parseFile(String file, List<Racer> racers, String setTime) throws IOException {
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			reader.lines().forEach(line -> {
+				String abbreviation = line.substring(0, 3);
+				String time = line.substring(3);
+				racers.stream().filter(racer -> racer.getAbbreviation().equals(abbreviation)).findFirst()
+						.ifPresent(racer -> {
+							if ("setStartTime".equals(setTime)) {
+								racer.setStartTime(time);
+							} else if ("setEndTime".equals(setTime)) {
+								racer.setEndTime(time);
+							}
+						});
+			});
+		} catch (IOException e) {
+			logger.error("An error occurred while parsing the file: {}", e.getMessage(), e);
+			throw e;
+		}
+		return racers;
+	}
 
 	// method for parse file 'start'
 	public List<Racer> parseStart(String startTimeFile, List<Racer> racers) throws IOException {
-	    return parseFile(startTimeFile, racers, 3, 6);
+		String setStartTime = "setStartTime";
+		return parseFile(startTimeFile, racers, setStartTime);
 	}
 
 	// method for parse file 'end'
 	public List<Racer> parseEnd(String endTimeFile, List<Racer> racers) throws IOException {
-	    return parseFile(endTimeFile, racers, 3, 6);
+		String setEndTime = "setEndTime";
+		return parseFile(endTimeFile, racers, setEndTime);
 	}
 
 	// method for add duration lap

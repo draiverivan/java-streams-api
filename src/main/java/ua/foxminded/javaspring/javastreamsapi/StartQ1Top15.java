@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class StartQ1Top15 {
 
-	private static Logger logger = LoggerFactory.getLogger(StartQ1Top15.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StartQ1Top15.class.getName());
 	static List<Racer> racers;
 	private static final int TOP15RACERS = 15;
 
@@ -27,7 +27,7 @@ public class StartQ1Top15 {
 			handleDataQ1Formula1.parseStart("src/main/resources/start.log", racers);
 			handleDataQ1Formula1.parseEnd("src/main/resources/end.log", racers);
 		} catch (IOException e) {
-			logger.error("An error occurred while parsing: {}", e.getStackTrace());
+			logger.error("An error occurred while parsing: {}", e.getMessage(), e);
 		}
 
 		handleDataQ1Formula1.addDurationLap(racers);
@@ -50,7 +50,7 @@ public class StartQ1Top15 {
 		for (int i = 0; i < maxNameWidth + maxTeamWidth + maxDurationWidth + 11; i++) {
 			underline.append("-");
 		}
-		logger.info(underline.toString());
+		logger.info("{}", underline);
 
 		// Print remaining racers
 		for (int i = TOP15RACERS; i < racers.size(); i++) {

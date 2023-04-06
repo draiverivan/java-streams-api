@@ -9,15 +9,39 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class HandleDataQ1Formula1Test {
 
-	private HandleDataQ1Formula1 handleDataQ1Formula1 = new HandleDataQ1Formula1();
-	List<Racer> racers = new ArrayList<>();
+	private HandleDataQ1Formula1 handleDataQ1Formula1;
+	List<Racer> racers;
+
+	@BeforeEach
+	void setUp() {
+		handleDataQ1Formula1 = new HandleDataQ1Formula1();
+		racers = new ArrayList<>();
+	}
 
 	@Test
-	void parseAbbreviations() {
+	void parseAbbreviationsIOException() {
+		assertThrows(IOException.class, () -> handleDataQ1Formula1.parseAbbreviations("nonexistent_file.txt"));
+	}
+
+	@Test
+	void parseStartTimeIOException() {
+		List<Racer> racers = new ArrayList<>();
+		assertThrows(IOException.class, () -> handleDataQ1Formula1.parseStart("nonexistent_file.txt", racers));
+	}
+
+	@Test
+	void parseEndTimeIOException() {
+		List<Racer> racers = new ArrayList<>();
+		assertThrows(IOException.class, () -> handleDataQ1Formula1.parseEnd("nonexistent_file.txt", racers));
+	}
+
+	@Test
+	void parseAbbreviations() throws IOException {
 		String abbreviationsFile = "src/main/resources/abbreviations.txt";
 		racers = handleDataQ1Formula1.parseAbbreviations(abbreviationsFile);
 		assertEquals(19, racers.size());
@@ -91,39 +115,37 @@ class HandleDataQ1Formula1Test {
 	}
 
 	@Test
-	public void sortByDurationLap() {
-	    List<Racer> racers = new ArrayList<>();
-	    racers.add(new Racer("VER", "Bottas V.", "Mercedes"));
-	    racers.add(new Racer("HAM", "Hamilton L.", "Mercedes"));
-	    racers.add(new Racer("BOT", "Verstappen M.", "Red Bull"));
-	    racers.add(new Racer("SAI", "Sainz C.", "Ferrari"));
+	void sortByDurationLap() {
+		List<Racer> racers = new ArrayList<>();
+		racers.add(new Racer("VER", "Bottas V.", "Mercedes"));
+		racers.add(new Racer("HAM", "Hamilton L.", "Mercedes"));
+		racers.add(new Racer("BOT", "Verstappen M.", "Red Bull"));
+		racers.add(new Racer("SAI", "Sainz C.", "Ferrari"));
 
-	    // Set start and end times for the racers
-	    racers.get(0).setStartTime("2023-04-04_14:00:00.000");
-	    racers.get(0).setEndTime("2023-04-04_14:01:20.000");
-	    racers.get(1).setStartTime("2023-04-04_14:00:10.000");
-	    racers.get(1).setEndTime("2023-04-04_14:01:30.000");
-	    racers.get(2).setStartTime("2023-04-04_14:00:20.000");
-	    racers.get(2).setEndTime("2023-04-04_14:01:10.000");
-	    racers.get(3).setStartTime("2023-04-04_14:00:30.000");
-	    racers.get(3).setEndTime("2023-04-04_14:01:40.000");
+		// Set start and end times for the racers
+		racers.get(0).setStartTime("2023-04-04_14:00:00.000");
+		racers.get(0).setEndTime("2023-04-04_14:01:20.000");
+		racers.get(1).setStartTime("2023-04-04_14:00:10.000");
+		racers.get(1).setEndTime("2023-04-04_14:01:30.000");
+		racers.get(2).setStartTime("2023-04-04_14:00:20.000");
+		racers.get(2).setEndTime("2023-04-04_14:01:10.000");
+		racers.get(3).setStartTime("2023-04-04_14:00:30.000");
+		racers.get(3).setEndTime("2023-04-04_14:01:40.000");
 
-	    // Calculate duration for each racer
-	    HandleDataQ1Formula1 handleData = new HandleDataQ1Formula1();
-	    handleData.addDurationLap(racers);
+		// Calculate duration for each racer
+		HandleDataQ1Formula1 handleData = new HandleDataQ1Formula1();
+		handleData.addDurationLap(racers);
 
-	    // Sort the racers by duration
-	    List<Racer> sortedRacers = handleData.sortByDurationLap(racers);
+		// Sort the racers by duration
+		List<Racer> sortedRacers = handleData.sortByDurationLap(racers);
 
-	    // Check that the racers are sorted correctly
-	    assertEquals(4, sortedRacers.size());
-	    assertEquals("BOT", sortedRacers.get(0).getAbbreviation());
-	    assertEquals("SAI", sortedRacers.get(1).getAbbreviation());
-	    assertEquals("VER", sortedRacers.get(2).getAbbreviation());
-	    assertEquals("HAM", sortedRacers.get(3).getAbbreviation());
+		// Check that the racers are sorted correctly
+		assertEquals(4, sortedRacers.size());
+		assertEquals("BOT", sortedRacers.get(0).getAbbreviation());
+		assertEquals("SAI", sortedRacers.get(1).getAbbreviation());
+		assertEquals("VER", sortedRacers.get(2).getAbbreviation());
+		assertEquals("HAM", sortedRacers.get(3).getAbbreviation());
 	}
-
-
 
 	@Test
 	void sortByDurationLapWithEmptyList() {
