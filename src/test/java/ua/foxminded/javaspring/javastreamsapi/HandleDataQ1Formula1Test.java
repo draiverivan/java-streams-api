@@ -43,19 +43,19 @@ class HandleDataQ1Formula1Test {
 
 	@Test
 	void parseAbbreviationsIOException() {
-		assertThrows(IOException.class, () -> handleDataQ1Formula1.parseAbbreviations("nonexistent_file.txt"));
+		assertThrows(DataParsingException.class, () -> handleDataQ1Formula1.parseAbbreviations("nonexistent_file.txt"));
 	}
 
 	@Test
 	void parseStartTimeIOException() {
 		List<Racer> racers = new ArrayList<>();
-		assertThrows(IOException.class, () -> handleDataQ1Formula1.parseStart("nonexistent_file.txt", racers));
+		assertThrows(DataParsingException.class, () -> handleDataQ1Formula1.parseStart("nonexistent_file.txt", racers));
 	}
 
 	@Test
 	void parseEndTimeIOException() {
 		List<Racer> racers = new ArrayList<>();
-		assertThrows(IOException.class, () -> handleDataQ1Formula1.parseEnd("nonexistent_file.txt", racers));
+		assertThrows(DataParsingException.class, () -> handleDataQ1Formula1.parseEnd("nonexistent_file.txt", racers));
 	}
 
 	@Test

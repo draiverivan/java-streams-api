@@ -40,7 +40,7 @@ public class HandleDataQ1Formula1 {
 			});
 		} catch (IOException e) {
 			logger.error("An error occurred while parsing the abbreviations file: {}", e.getMessage(), e);
-			throw e;
+			throw new DataParsingException(e.getMessage(), e);
 		}
 		return racers;
 	}
@@ -62,7 +62,7 @@ public class HandleDataQ1Formula1 {
 			});
 		} catch (IOException e) {
 			logger.error("An error occurred while parsing the file: {}", e.getMessage(), e);
-			throw e;
+			throw new DataParsingException(e.getMessage(), e);
 		}
 		return racers;
 	}
